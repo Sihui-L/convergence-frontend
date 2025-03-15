@@ -2,10 +2,11 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { v4 as uuidv4 } from "uuid";
-import ChatSidebar from "../../components/ChatSidebar";
-import ChatPanel from "../../components/ChatPanel";
-import ResponseVisualization from "../../components/ResponseVisualization";
-import useWebSocket from "../../hooks/useWebSocket";
+import ChatSidebar from "@/components/ChatSidebar";
+import ChatPanel from "@/components/ChatPanel";
+import ResponseVisualization from "@/components/ResponseVisualization";
+import useWebSocket from "@/hooks/useWebSocket";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
 // Define types
 export type Message = {
@@ -44,6 +45,7 @@ const ChatPage = () => {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [isStreamingResponse, setIsStreamingResponse] =
     useState<boolean>(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
 
   // Reference to the active session
   const activeSession = sessions.find(
@@ -152,6 +154,22 @@ const ChatPage = () => {
     };
   }, [activeSessionId]);
 
+  // Reset selected message when active session changes or is deleted
+  useEffect(() => {
+    // Check if the selected message still exists in the active session
+    if (selectedMessage && activeSession) {
+      const messageExists = activeSession.messages.some(
+        (msg) => msg.id === selectedMessage.id
+      );
+      if (!messageExists) {
+        setSelectedMessage(null);
+      }
+    } else if (!activeSession) {
+      // No active session, clear selected message
+      setSelectedMessage(null);
+    }
+  }, [activeSession, selectedMessage]);
+
   // Create a new chat session
   const createNewSession = () => {
     const newSession: ChatSession = {
@@ -164,6 +182,9 @@ const ChatPage = () => {
 
     setSessions((prevSessions) => [...prevSessions, newSession]);
     setActiveSessionId(newSession.id);
+
+    // Ensure sidebar is expanded when creating a new chat
+    setIsSidebarExpanded(true);
   };
 
   // Send a message from the user
@@ -297,7 +318,9 @@ const ChatPage = () => {
               metadata,
             };
 
-            setSelectedMessage(permanentMsg);
+            // Only set selected message if explicitly clicked by user
+            // Comment out this line to make visualization only show on click
+            // setSelectedMessage(permanentMsg);
 
             return {
               ...session,
@@ -311,6 +334,21 @@ const ChatPage = () => {
         return session;
       })
     );
+  };
+
+  // Handle message selection for visualization
+  const handleMessageSelect = (message: Message | null) => {
+    setSelectedMessage(message);
+  };
+
+  // Close visualization panel
+  const closeVisualization = () => {
+    setSelectedMessage(null);
+  };
+
+  // Toggle sidebar expanded state
+  const toggleSidebar = () => {
+    setIsSidebarExpanded(!isSidebarExpanded);
   };
 
   // Submit feedback for a message
@@ -368,27 +406,62 @@ const ChatPage = () => {
 
   // Delete a session
   const deleteSession = (sessionId: string) => {
+    // If deleted session contains the selected message, clear it
+    if (selectedMessage) {
+      const session = sessions.find((s) => s.id === sessionId);
+      if (
+        session &&
+        session.messages.some((m) => m.id === selectedMessage.id)
+      ) {
+        setSelectedMessage(null);
+      }
+    }
+
     setSessions((prevSessions) =>
       prevSessions.filter((session) => session.id !== sessionId)
     );
 
     if (activeSessionId === sessionId) {
-      setActiveSessionId(sessions.length > 1 ? sessions[0].id : null);
+      // Find next session to select
+      const remainingSessions = sessions.filter((s) => s.id !== sessionId);
+      if (remainingSessions.length > 0) {
+        setActiveSessionId(remainingSessions[0].id);
+      } else {
+        setActiveSessionId(null);
+      }
     }
   };
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar with chat sessions */}
-      <ChatSidebar
-        sessions={sessions}
-        activeSessionId={activeSessionId}
-        onSelectSession={setActiveSessionId}
-        onCreateSession={createNewSession}
-        onRenameSession={renameSession}
-        onDeleteSession={deleteSession}
-        connectionStatus={connectionStatus}
-      />
+      {/* Sidebar wrapper with toggle button */}
+      <div className="flex relative">
+        {/* Sidebar - conditionally rendered based on expanded state */}
+        {isSidebarExpanded && (
+          <ChatSidebar
+            sessions={sessions}
+            activeSessionId={activeSessionId}
+            onSelectSession={setActiveSessionId}
+            onCreateSession={createNewSession}
+            onRenameSession={renameSession}
+            onDeleteSession={deleteSession}
+            connectionStatus={connectionStatus}
+          />
+        )}
+
+        {/* Toggle button */}
+        <button
+          onClick={toggleSidebar}
+          className="absolute top-4 -right-4 h-8 w-8 bg-gray-700 hover:bg-gray-600 text-white rounded-r-md flex items-center justify-center cursor-pointer z-10 shadow-md transition-colors"
+          title={isSidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+        >
+          {isSidebarExpanded ? (
+            <IconChevronLeft size={16} stroke={2.5} />
+          ) : (
+            <IconChevronRight size={16} stroke={2.5} />
+          )}
+        </button>
+      </div>
 
       {/* Main chat area */}
       <div className="flex flex-col flex-grow">
@@ -400,7 +473,7 @@ const ChatPage = () => {
               onSendMessage={sendUserMessage}
               isLoading={isLoading}
               isStreamingResponse={isStreamingResponse}
-              onMessageSelect={setSelectedMessage}
+              onMessageSelect={handleMessageSelect}
               onSubmitFeedback={submitFeedback}
             />
           </div>
@@ -408,7 +481,10 @@ const ChatPage = () => {
           {/* Visualization panel (only visible when a message is selected) */}
           {selectedMessage && selectedMessage.role === "assistant" && (
             <div className="w-80 border-l border-gray-200 bg-white">
-              <ResponseVisualization message={selectedMessage} />
+              <ResponseVisualization
+                message={selectedMessage}
+                onClose={closeVisualization}
+              />
             </div>
           )}
         </div>

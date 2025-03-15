@@ -1,12 +1,15 @@
-// components/ChatPanel.tsx
 import React, { useState, useRef, useEffect } from "react";
 import { ChatSession, Message } from "../app/chat/page";
-import IconUser from "./icons/IconUser";
-import IconAI from "./icons/IconAI";
-import IconSend from "./icons/IconSend";
+import {
+  IconUser,
+  IconRobot,
+  IconSend,
+  IconX,
+  IconPhoto,
+  IconLoader2,
+} from "@tabler/icons-react";
 import TypingIndicator from "./TypingIndicator";
 import MessageFeedback from "./MessageFeedback";
-import ImagePreview from "./ImagePreview";
 
 interface ChatPanelProps {
   session: ChatSession | undefined;
@@ -234,9 +237,12 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                 >
                   <div className="flex-shrink-0 mr-3">
                     {msg.role === "user" ? (
-                      <IconUser className="h-6 w-6 text-white" />
+                      <IconUser className="h-6 w-6 text-white" stroke={1.5} />
                     ) : (
-                      <IconAI className="h-6 w-6 text-blue-600" />
+                      <IconRobot
+                        className="h-6 w-6 text-blue-600"
+                        stroke={1.5}
+                      />
                     )}
                   </div>
                   <div className="flex-grow">
@@ -305,18 +311,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
                 className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
                 title="Remove image"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <IconX className="h-5 w-5" stroke={2} />
               </button>
             </div>
           </div>
@@ -324,26 +319,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
         {isProcessingImage && (
           <div className="mb-2 p-2 bg-blue-50 rounded-md text-blue-600 flex items-center">
-            <svg
-              className="animate-spin h-4 w-4 mr-2"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
+            <IconLoader2 className="animate-spin h-4 w-4 mr-2" stroke={2} />
             Processing image...
           </div>
         )}
@@ -386,20 +362,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               title="Upload image"
               disabled={isLoading}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
+              <IconPhoto className="h-6 w-6" stroke={1.5} />
             </button>
 
             <button
@@ -411,7 +374,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
               } text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
               disabled={(!message.trim() && !imagePreview) || isLoading}
             >
-              <IconSend className="h-6 w-6" />
+              <IconSend className="h-6 w-6" stroke={1.5} />
             </button>
           </div>
         </form>

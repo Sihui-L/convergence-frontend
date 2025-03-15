@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { ChatSession } from "../app/chat/page";
+import { IconEdit, IconTrash, IconPlus } from "@tabler/icons-react";
 
 type ConnectionStatus = "connecting" | "connected" | "disconnected" | "error";
 
@@ -145,23 +146,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                             e.stopPropagation();
                             handleEditClick(session);
                           }}
-                          className="p-1 text-gray-400 hover:text-gray-200"
+                          className="p-1 text-gray-400 hover:text-gray-200 cursor-pointer"
                           title="Rename"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                            />
-                          </svg>
+                          <IconEdit className="h-4 w-4" stroke={1.5} />
                         </button>
                         <button
                           onClick={(e) => {
@@ -174,23 +162,10 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                               onDeleteSession(session.id);
                             }
                           }}
-                          className="p-1 text-gray-400 hover:text-red-400"
+                          className="p-1 text-gray-400 hover:text-red-400 cursor-pointer"
                           title="Delete"
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-4 w-4"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                            />
-                          </svg>
+                          <IconTrash className="h-4 w-4" stroke={1.5} />
                         </button>
                       </div>
                     </div>
@@ -206,20 +181,9 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
       <div className="p-4 border-t border-gray-700">
         <button
           onClick={onCreateSession}
-          className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition"
+          className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition cursor-pointer"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <IconPlus className="h-5 w-5" stroke={1.5} />
           <span>New Chat</span>
         </button>
       </div>

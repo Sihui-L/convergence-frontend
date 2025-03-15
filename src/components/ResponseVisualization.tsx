@@ -1,12 +1,23 @@
 import React from "react";
 import { Message } from "../app/chat/page";
+import {
+  IconMoodSmile,
+  IconMoodSad,
+  IconMoodNeutral,
+  IconPhoto,
+  IconThumbUp,
+  IconThumbDown,
+  IconX,
+} from "@tabler/icons-react";
 
 interface ResponseVisualizationProps {
   message: Message;
+  onClose?: () => void; // Added onClose prop
 }
 
 const ResponseVisualization: React.FC<ResponseVisualizationProps> = ({
   message,
+  onClose,
 }) => {
   if (message.role !== "assistant") {
     return null;
@@ -29,51 +40,12 @@ const ResponseVisualization: React.FC<ResponseVisualizationProps> = ({
   const getSentimentIcon = (sentiment?: string) => {
     switch (sentiment) {
       case "positive":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-7.536 5.879a1 1 0 001.415 0 3 3 0 014.242 0 1 1 0 001.415-1.415 5 5 0 00-7.072 0 1 1 0 000 1.415z"
-              clipRule="evenodd"
-            />
-          </svg>
-        );
+        return <IconMoodSmile className="h-5 w-5" stroke={2} />;
       case "negative":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 100-2 1 1 0 000 2zm7-1a1 1 0 11-2 0 1 1 0 012 0zm-3 6a3 3 0 01-3-3h1a2 2 0 002 2 2 2 0 002-2h1a3 3 0 01-3 3z"
-              clipRule="evenodd"
-            />
-          </svg>
-        );
+        return <IconMoodSad className="h-5 w-5" stroke={2} />;
       case "neutral":
       default:
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9H5a1 1 0 010-2h2a1 1 0 010 2zm8 0h-2a1 1 0 010-2h2a1 1 0 010 2z"
-              clipRule="evenodd"
-            />
-          </svg>
-        );
+        return <IconMoodNeutral className="h-5 w-5" stroke={2} />;
     }
   };
 
@@ -116,7 +88,19 @@ const ResponseVisualization: React.FC<ResponseVisualizationProps> = ({
   };
 
   return (
-    <div className="h-full p-4 overflow-y-auto">
+    <div className="h-full p-4 overflow-y-auto relative">
+      {/* Close button - only rendered if onClose prop exists */}
+      {onClose && (
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 p-1 rounded-full hover:bg-gray-200 text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+          title="Close panel"
+          aria-label="Close analysis panel"
+        >
+          <IconX size={18} stroke={2} />
+        </button>
+      )}
+
       <h3 className="text-lg font-semibold text-gray-800 mb-4">
         Response Analysis
       </h3>
@@ -125,20 +109,7 @@ const ResponseVisualization: React.FC<ResponseVisualizationProps> = ({
       {metadata?.contains_image_analysis && (
         <div className="mb-4">
           <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-purple-100 text-purple-800">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-4 w-4 mr-1"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-              />
-            </svg>
+            <IconPhoto className="h-4 w-4 mr-1" stroke={2} />
             Image Analysis
           </span>
         </div>
@@ -255,23 +226,9 @@ const ResponseVisualization: React.FC<ResponseVisualizationProps> = ({
           `}
           >
             {message.feedback === "positive" ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
-              </svg>
+              <IconThumbUp className="h-5 w-5" stroke={2} />
             ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path d="M18 9.5a1.5 1.5 0 11-3 0v-6a1.5 1.5 0 013 0v6zM14 9.667v-5.43a2 2 0 00-1.105-1.79l-.05-.025A4 4 0 0011.055 2H5.64a2 2 0 00-1.962 1.608l-1.2 6A2 2 0 004.44 12H8v4a2 2 0 002 2 1 1 0 001-1v-.667a4 4 0 01.8-2.4l1.4-1.866a4 4 0 00.8-2.4z" />
-              </svg>
+              <IconThumbDown className="h-5 w-5" stroke={2} />
             )}
             <span>
               {message.feedback === "positive" ? "Helpful" : "Not helpful"}
