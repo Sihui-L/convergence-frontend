@@ -170,29 +170,6 @@ const ResponseVisualization: React.FC<ResponseVisualizationProps> = ({
         </div>
       </div>
 
-      {/* Visualization - Simple word count bar */}
-      <div className="mb-6">
-        <div className="text-sm font-medium text-gray-700 mb-1">
-          Density Visualization
-        </div>
-        <div className="h-8 bg-gray-200 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-blue-600 rounded-full transition-all duration-500"
-            style={{
-              width: `${Math.min(
-                100,
-                (getWordCount(message.content) / 200) * 100
-              )}%`,
-            }}
-          ></div>
-        </div>
-        <div className="mt-1 text-xs text-gray-500 flex justify-between">
-          <span>0</span>
-          <span>100</span>
-          <span>200+ words</span>
-        </div>
-      </div>
-
       {/* Model Used - For image analysis */}
       {metadata?.contains_image_analysis && (
         <div className="mb-6">
