@@ -1,4 +1,3 @@
-// components/TypingIndicator.tsx
 import React from "react";
 
 const TypingIndicator: React.FC = () => {

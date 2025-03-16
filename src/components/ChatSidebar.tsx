@@ -1,12 +1,7 @@
 import React, { useState } from "react";
 import { ChatSession } from "../app/chat/page";
 import { ActionIcon, Text, Tooltip, Button } from "@mantine/core";
-import {
-  IconEdit,
-  IconTrash,
-  IconPlus,
-  IconChevronLeft,
-} from "@tabler/icons-react";
+import { IconEdit, IconTrash, IconChevronLeft } from "@tabler/icons-react";
 
 type ConnectionStatus = "connecting" | "connected" | "disconnected" | "error";
 

@@ -65,7 +65,7 @@ With additional time, these enhancements could be made:
 2. Implement chat export/import features
 3. Enhance response visualization with more detailed metrics
 4. Add authentication and user management
-5. Improve image upload capabilities with preview and status indicators
+5. Improve image upload capabilities
 
 ## Getting Started
 

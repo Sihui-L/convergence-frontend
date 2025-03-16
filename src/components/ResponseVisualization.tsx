@@ -12,7 +12,7 @@ import {
 
 interface ResponseVisualizationProps {
   message: Message;
-  onClose?: () => void; // Added onClose prop
+  onClose?: () => void;
 }
 
 const ResponseVisualization: React.FC<ResponseVisualizationProps> = ({
@@ -89,7 +89,6 @@ const ResponseVisualization: React.FC<ResponseVisualizationProps> = ({
 
   return (
     <div className="h-full p-4 overflow-y-auto relative">
-      {/* Close button - only rendered if onClose prop exists */}
       {onClose && (
         <button
           onClick={onClose}

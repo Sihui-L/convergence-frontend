@@ -8,7 +8,6 @@ import ChatPanel from "@/components/ChatPanel";
 import ResponseVisualization from "@/components/ResponseVisualization";
 import useWebSocket from "@/hooks/useWebSocket";
 
-// Define types
 export type Message = {
   id: string;
   role: "user" | "assistant";
@@ -319,10 +318,6 @@ const ChatPage = () => {
               id: uuidv4(),
               metadata,
             };
-
-            // Only set selected message if explicitly clicked by user
-            // Comment out this line to make visualization only show on click
-            // setSelectedMessage(permanentMsg);
 
             return {
               ...session,

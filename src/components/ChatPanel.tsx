@@ -1,17 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChatSession, Message } from "../app/chat/page";
-import {
-  IconUser,
-  IconRobot,
-  IconSend,
-  IconX,
-  IconPhoto,
-  IconLoader2,
-} from "@tabler/icons-react";
-import TypingIndicator from "./TypingIndicator";
-import MessageFeedback from "./MessageFeedback";
+import { MessageBubble, EmptyChat } from "./ChatPanel/MessageComponents";
+import { InputArea } from "./ChatPanel/InputComponents";
 
-interface ChatPanelProps {
+export interface ChatPanelProps {
   session: ChatSession | undefined;
   onSendMessage: (
     content: string,
@@ -35,21 +27,26 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   onMessageSelect,
   onSubmitFeedback,
 }) => {
+  // State
   const [message, setMessage] = useState<string>("");
   const [enableStreaming, setEnableStreaming] = useState<boolean>(true);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState<boolean>(false);
 
-  // Scroll to bottom when messages change
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Effects
   useEffect(() => {
     scrollToBottom();
   }, [session?.messages]);
 
+  // Functions
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,18 +55,13 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     if ((!message.trim() && !imagePreview) || isLoading) return;
 
     try {
-      // If there's an image, send it along with the message
       if (imagePreview) {
         onSendMessage(message, enableStreaming, imagePreview);
-        // Clear the image preview and selected file after sending
-        setImagePreview(null);
-        setSelectedFile(null);
+        resetImageSelection();
       } else {
-        // Just send the text message
         onSendMessage(message, enableStreaming);
       }
 
-      // Clear the message input
       setMessage("");
     } catch (error) {
       console.error("Error sending message:", error);
@@ -79,7 +71,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      handleSubmit(e as unknown as React.FormEvent);
     }
   };
 
@@ -93,23 +85,25 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       }
 
       setSelectedFile(file);
-
-      // Create a preview of the image
-      const reader = new FileReader();
-      setIsProcessingImage(true);
-
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        setIsProcessingImage(false);
-      };
-
-      reader.onerror = () => {
-        console.error("Error reading file");
-        setIsProcessingImage(false);
-      };
-
-      reader.readAsDataURL(file);
+      processImagePreview(file);
     }
+  };
+
+  const processImagePreview = (file: File) => {
+    const reader = new FileReader();
+    setIsProcessingImage(true);
+
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+      setIsProcessingImage(false);
+    };
+
+    reader.onerror = () => {
+      console.error("Error reading file");
+      setIsProcessingImage(false);
+    };
+
+    reader.readAsDataURL(file);
   };
 
   const handleFileUpload = () => {
@@ -118,7 +112,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   };
 
-  const removeSelectedFile = () => {
+  const resetImageSelection = () => {
     setSelectedFile(null);
     setImagePreview(null);
     if (fileInputRef.current) {
@@ -126,46 +120,7 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
     }
   };
 
-  const formatTimestamp = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      hour: "numeric",
-      minute: "numeric",
-      hour12: true,
-    }).format(date);
-  };
-
-  // Function to check if a message contains an image (for display purposes)
-  const hasImageContent = (msg: Message): boolean => {
-    if (typeof msg.content === "object" && Array.isArray(msg.content)) {
-      return msg.content.some((item) => item.type === "image_url");
-    }
-    return false;
-  };
-
-  // Function to extract image URL from message content
-  const getImageUrl = (msg: Message): string | null => {
-    if (typeof msg.content === "object" && Array.isArray(msg.content)) {
-      const imageItem = msg.content.find((item) => item.type === "image_url");
-      if (imageItem && imageItem.image_url && imageItem.image_url.url) {
-        return imageItem.image_url.url;
-      }
-    }
-    return null;
-  };
-
-  // Function to extract text content from message
-  const getTextContent = (msg: Message): string => {
-    if (typeof msg.content === "string") {
-      return msg.content;
-    } else if (typeof msg.content === "object" && Array.isArray(msg.content)) {
-      const textItem = msg.content.find((item) => item.type === "text");
-      if (textItem && textItem.text) {
-        return textItem.text;
-      }
-    }
-    return "";
-  };
-
+  // If no session is available
   if (!session) {
     return (
       <div className="flex items-center justify-center h-full bg-white">
@@ -197,92 +152,16 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       {/* Messages area */}
       <div className="flex-grow overflow-y-auto p-4 bg-gray-50">
         {session.messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-center p-6 max-w-md">
-              <h3 className="text-lg font-medium text-gray-900">
-                Start a conversation
-              </h3>
-              <p className="mt-2 text-sm text-gray-500">
-                Send a message or upload an image to start chatting with the AI
-                assistant.
-              </p>
-            </div>
-          </div>
+          <EmptyChat />
         ) : (
           <div className="space-y-4">
             {session.messages.map((msg) => (
-              <div
+              <MessageBubble
                 key={msg.id}
-                className={`flex ${
-                  msg.role === "user" ? "justify-end" : "justify-start"
-                }`}
-                onClick={() =>
-                  msg.role === "assistant" ? onMessageSelect(msg) : null
-                }
-              >
-                <div
-                  className={`
-                    flex max-w-3xl rounded-lg p-4 
-                    ${
-                      msg.role === "user"
-                        ? "bg-blue-600 text-white"
-                        : "bg-white border border-gray-200"
-                    }
-                    ${
-                      msg.role === "assistant"
-                        ? "hover:border-blue-300 cursor-pointer"
-                        : ""
-                    }
-                  `}
-                >
-                  <div className="flex-shrink-0 mr-3">
-                    {msg.role === "user" ? (
-                      <IconUser className="h-6 w-6 text-white" stroke={1.5} />
-                    ) : (
-                      <IconRobot
-                        className="h-6 w-6 text-blue-600"
-                        stroke={1.5}
-                      />
-                    )}
-                  </div>
-                  <div className="flex-grow">
-                    <div className="flex justify-between">
-                      <div className="font-medium">
-                        {msg.role === "user" ? "You" : "AI Assistant"}
-                      </div>
-                      <div className="text-xs text-gray-400 ml-2">
-                        {formatTimestamp(msg.timestamp)}
-                      </div>
-                    </div>
-
-                    {/* Display user uploaded image */}
-                    {msg.role === "user" && hasImageContent(msg) && (
-                      <div className="mt-2 mb-2">
-                        <img
-                          src={getImageUrl(msg) || ""}
-                          alt="User uploaded image"
-                          className="max-h-64 rounded-lg"
-                        />
-                      </div>
-                    )}
-
-                    {/* Message text content */}
-                    <div className="mt-1 whitespace-pre-wrap">
-                      {getTextContent(msg)}
-                    </div>
-
-                    {msg.role === "assistant" && (
-                      <div className="mt-2">
-                        <MessageFeedback
-                          messageId={msg.id}
-                          feedback={msg.feedback}
-                          onSubmitFeedback={onSubmitFeedback}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+                message={msg}
+                onMessageSelect={onMessageSelect}
+                onSubmitFeedback={onSubmitFeedback}
+              />
             ))}
             <div ref={messagesEndRef} />
           </div>
@@ -290,95 +169,20 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       </div>
 
       {/* Input area */}
-      <div className="p-4 bg-white border-t border-gray-200">
-        {isLoading && !isStreamingResponse && (
-          <div className="mb-2">
-            <TypingIndicator />
-          </div>
-        )}
-
-        {/* Image preview area */}
-        {imagePreview && (
-          <div className="mb-4">
-            <div className="relative inline-block">
-              <img
-                src={imagePreview}
-                alt="Selected"
-                className="max-h-40 rounded-lg border border-gray-300"
-              />
-              <button
-                onClick={removeSelectedFile}
-                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition-colors"
-                title="Remove image"
-              >
-                <IconX className="h-5 w-5" stroke={2} />
-              </button>
-            </div>
-          </div>
-        )}
-
-        {isProcessingImage && (
-          <div className="mb-2 p-2 bg-blue-50 rounded-md text-blue-600 flex items-center">
-            <IconLoader2 className="animate-spin h-4 w-4 mr-2" stroke={2} />
-            Processing image...
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="flex items-end space-x-2">
-          <div className="flex-grow">
-            <textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                imagePreview
-                  ? "Ask about this image..."
-                  : "Type your message..."
-              }
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows={3}
-              disabled={isLoading}
-            />
-          </div>
-
-          <div className="flex flex-col space-y-2">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              className="hidden"
-              accept="image/*"
-              disabled={isLoading}
-            />
-
-            <button
-              type="button"
-              onClick={handleFileUpload}
-              className={`p-2 rounded-full ${
-                imagePreview
-                  ? "text-blue-600 bg-blue-100"
-                  : "text-gray-500 hover:bg-gray-100"
-              }`}
-              title="Upload image"
-              disabled={isLoading}
-            >
-              <IconPhoto className="h-6 w-6" stroke={1.5} />
-            </button>
-
-            <button
-              type="submit"
-              className={`p-2 rounded-full ${
-                (!message.trim() && !imagePreview) || isLoading
-                  ? "bg-blue-300 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
-              } text-white focus:outline-none focus:ring-2 focus:ring-blue-500`}
-              disabled={(!message.trim() && !imagePreview) || isLoading}
-            >
-              <IconSend className="h-6 w-6" stroke={1.5} />
-            </button>
-          </div>
-        </form>
-      </div>
+      <InputArea
+        message={message}
+        setMessage={setMessage}
+        imagePreview={imagePreview}
+        isProcessingImage={isProcessingImage}
+        isLoading={isLoading}
+        isStreamingResponse={isStreamingResponse}
+        handleSubmit={handleSubmit}
+        handleKeyDown={handleKeyDown}
+        handleFileUpload={handleFileUpload}
+        resetImageSelection={resetImageSelection}
+        fileInputRef={fileInputRef}
+        handleFileChange={handleFileChange}
+      />
     </div>
   );
 };
