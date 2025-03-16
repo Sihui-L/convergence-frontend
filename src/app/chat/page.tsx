@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { IconChevronRight } from "@tabler/icons-react";
 import { v4 as uuidv4 } from "uuid";
 import ChatSidebar from "@/components/ChatSidebar";
 import ChatPanel from "@/components/ChatPanel";
 import ResponseVisualization from "@/components/ResponseVisualization";
 import useWebSocket from "@/hooks/useWebSocket";
-import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 
 // Define types
 export type Message = {
@@ -46,6 +46,7 @@ const ChatPage = () => {
   const [isStreamingResponse, setIsStreamingResponse] =
     useState<boolean>(false);
   const [isSidebarExpanded, setIsSidebarExpanded] = useState<boolean>(true);
+  const initialSessionCreated = useRef(false);
 
   // Reference to the active session
   const activeSession = sessions.find(
@@ -135,12 +136,13 @@ const ChatPage = () => {
     }
   }, [lastMessage, activeSessionId]);
 
-  // Initialize a new session when component mounts
+  // Initialize a new session when component mounts, but only once
   useEffect(() => {
-    if (sessions.length === 0) {
+    if (sessions.length === 0 && !initialSessionCreated.current) {
+      initialSessionCreated.current = true;
       createNewSession();
     }
-  }, []);
+  }, [sessions.length]);
 
   // Connect to WebSocket when active session changes
   useEffect(() => {
@@ -434,10 +436,9 @@ const ChatPage = () => {
 
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar wrapper with toggle button */}
-      <div className="flex relative">
-        {/* Sidebar - conditionally rendered based on expanded state */}
-        {isSidebarExpanded && (
+      {/* Main sidebar (when expanded) */}
+      {isSidebarExpanded && (
+        <div className="h-full transition-all duration-300 ease-in-out">
           <ChatSidebar
             sessions={sessions}
             activeSessionId={activeSessionId}
@@ -446,22 +447,22 @@ const ChatPage = () => {
             onRenameSession={renameSession}
             onDeleteSession={deleteSession}
             connectionStatus={connectionStatus}
+            onToggleSidebar={toggleSidebar}
           />
-        )}
+        </div>
+      )}
 
-        {/* Toggle button */}
-        <button
+      {/* Collapsed sidebar toggle button */}
+      {!isSidebarExpanded && (
+        <div
+          className="flex items-center bg-gray-800 px-3 cursor-pointer h-12 hover:bg-gray-700 transition-colors duration-200"
           onClick={toggleSidebar}
-          className="absolute top-4 -right-4 h-8 w-8 bg-gray-700 hover:bg-gray-600 text-white rounded-r-md flex items-center justify-center cursor-pointer z-10 shadow-md transition-colors"
-          title={isSidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
         >
-          {isSidebarExpanded ? (
-            <IconChevronLeft size={16} stroke={2.5} />
-          ) : (
-            <IconChevronRight size={16} stroke={2.5} />
-          )}
-        </button>
-      </div>
+          <div className="flex items-center text-gray-300 hover:text-white">
+            <IconChevronRight size={20} stroke={2} />
+          </div>
+        </div>
+      )}
 
       {/* Main chat area */}
       <div className="flex flex-col flex-grow">

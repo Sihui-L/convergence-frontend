@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import { ChatSession } from "../app/chat/page";
-import { IconEdit, IconTrash, IconPlus } from "@tabler/icons-react";
+import { ActionIcon, Text, Tooltip, Button } from "@mantine/core";
+import {
+  IconEdit,
+  IconTrash,
+  IconPlus,
+  IconChevronLeft,
+} from "@tabler/icons-react";
 
 type ConnectionStatus = "connecting" | "connected" | "disconnected" | "error";
 
@@ -12,6 +18,7 @@ interface ChatSidebarProps {
   onRenameSession: (sessionId: string, newName: string) => void;
   onDeleteSession: (sessionId: string) => void;
   connectionStatus: ConnectionStatus;
+  onToggleSidebar: () => void;
 }
 
 const ChatSidebar: React.FC<ChatSidebarProps> = ({
@@ -22,6 +29,7 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   onRenameSession,
   onDeleteSession,
   connectionStatus,
+  onToggleSidebar,
 }) => {
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState<string>("");
@@ -39,119 +47,111 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      handleSaveEdit();
-    } else if (e.key === "Escape") {
-      setEditingSessionId(null);
-    }
+    if (e.key === "Enter") handleSaveEdit();
+    if (e.key === "Escape") setEditingSessionId(null);
   };
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat("en-US", {
+  const formatDate = (date: Date) =>
+    new Intl.DateTimeFormat("en-US", {
       month: "short",
       day: "numeric",
       hour: "numeric",
       minute: "numeric",
       hour12: true,
     }).format(date);
-  };
 
-  const getConnectionStatusColor = (status: ConnectionStatus) => {
-    switch (status) {
-      case "connected":
-        return "bg-green-500";
-      case "connecting":
-        return "bg-yellow-500";
-      case "disconnected":
-        return "bg-gray-500";
-      case "error":
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
-    }
+  const connectionColors: Record<ConnectionStatus, string> = {
+    connected: "bg-green-500",
+    connecting: "bg-yellow-500",
+    disconnected: "bg-gray-500",
+    error: "bg-red-500",
   };
 
   return (
-    <div className="w-64 h-full flex flex-col bg-gray-800 text-white">
+    <div className="w-72 h-full flex flex-col bg-gray-800 text-white">
       {/* Header */}
-      <div className="p-4 border-b border-gray-700">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-xl">Chat Sessions</h2>
-          <div className="flex items-center">
-            <div
-              className={`h-2 w-2 rounded-full mr-2 ${getConnectionStatusColor(
-                connectionStatus
-              )}`}
-            ></div>
-            <span className="text-xs text-gray-300">
-              {connectionStatus === "connected"
-                ? "Connected"
-                : connectionStatus === "connecting"
-                ? "Connecting..."
-                : connectionStatus === "error"
-                ? "Connection Error"
-                : "Disconnected"}
-            </span>
-          </div>
+      <div className="pr-4 border-b border-gray-700 flex items-center justify-between">
+        <div className="flex items-center">
+          <Tooltip label="Collapse sidebar" position="right" withArrow>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              onClick={onToggleSidebar}
+              className="mr-2 px-3 h-12 hover:bg-gray-700"
+              aria-label="Toggle sidebar"
+            >
+              <IconChevronLeft size={20} stroke={2} />
+            </ActionIcon>
+          </Tooltip>
+          <h2 className="font-semibold">Chat Sessions</h2>
+        </div>
+        <div className="flex items-center">
+          <div
+            className={`h-2 w-2 rounded-full mr-2 ${connectionColors[connectionStatus]}`}
+          ></div>
+          <span className="text-xs text-gray-300 capitalize">
+            {connectionStatus.replace("-", " ")}
+          </span>
         </div>
       </div>
 
       {/* Session list */}
-      <div className="flex-grow overflow-y-auto">
-        <div className="p-2">
-          {sessions.length === 0 ? (
-            <div className="text-center p-4 text-gray-400">
-              No chats yet. Create a new one!
-            </div>
-          ) : (
-            <ul className="space-y-1">
-              {sessions.map((session) => (
-                <li key={session.id}>
-                  {editingSessionId === session.id ? (
-                    <div className="p-2">
-                      <input
-                        type="text"
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        onBlur={handleSaveEdit}
-                        autoFocus
-                        className="w-full px-2 py-1 bg-gray-700 text-white rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      />
-                    </div>
-                  ) : (
-                    <div
-                      className={`
-                        flex items-center justify-between p-2 rounded cursor-pointer
-                        ${
-                          activeSessionId === session.id
-                            ? "bg-gray-700"
-                            : "hover:bg-gray-700"
-                        }
-                      `}
-                      onClick={() => onSelectSession(session.id)}
-                    >
-                      <div className="flex-grow overflow-hidden">
-                        <div className="font-medium truncate">
-                          {session.name}
-                        </div>
-                        <div className="text-xs text-gray-400 truncate">
-                          {formatDate(session.updatedAt)}
-                        </div>
+      <div className="flex-grow overflow-y-auto p-2">
+        {sessions.length === 0 ? (
+          <div className="text-center p-4 text-gray-400">
+            <Text size="sm">No chats yet. Create a new one!</Text>
+          </div>
+        ) : (
+          <ul className="space-y-1">
+            {sessions.map((session) => (
+              <li key={session.id}>
+                {editingSessionId === session.id ? (
+                  <div className="p-2">
+                    <input
+                      type="text"
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      onBlur={handleSaveEdit}
+                      autoFocus
+                      className="w-full px-2 py-1 bg-gray-700 text-white rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    />
+                  </div>
+                ) : (
+                  <div
+                    className={`flex items-center justify-between p-2 rounded cursor-pointer ${
+                      activeSessionId === session.id
+                        ? "bg-gray-700"
+                        : "hover:bg-gray-700"
+                    }`}
+                    onClick={() => onSelectSession(session.id)}
+                  >
+                    <div className="flex-grow overflow-hidden">
+                      <div className="font-medium truncate">{session.name}</div>
+                      <div className="text-xs text-gray-400 truncate">
+                        {formatDate(session.updatedAt)}
                       </div>
-
-                      <div className="flex items-center space-x-1 ml-2">
-                        <button
+                    </div>
+                    <div className="flex items-center ml-2">
+                      <Tooltip label="Rename" withArrow position="top">
+                        <ActionIcon
+                          size="xs"
+                          variant="subtle"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEditClick(session);
                           }}
-                          className="p-1 text-gray-400 hover:text-gray-200 cursor-pointer"
-                          title="Rename"
+                          className="text-gray-400 hover:text-gray-200"
                         >
-                          <IconEdit className="h-4 w-4" stroke={1.5} />
-                        </button>
-                        <button
+                          <IconEdit size={16} stroke={1.5} />
+                        </ActionIcon>
+                      </Tooltip>
+
+                      <Tooltip label="Delete" withArrow position="top">
+                        <ActionIcon
+                          size="xs"
+                          variant="subtle"
+                          color="red"
                           onClick={(e) => {
                             e.stopPropagation();
                             if (
@@ -162,30 +162,29 @@ const ChatSidebar: React.FC<ChatSidebarProps> = ({
                               onDeleteSession(session.id);
                             }
                           }}
-                          className="p-1 text-gray-400 hover:text-red-400 cursor-pointer"
-                          title="Delete"
+                          className="text-gray-400 hover:text-red-400 ml-1"
                         >
-                          <IconTrash className="h-4 w-4" stroke={1.5} />
-                        </button>
-                      </div>
+                          <IconTrash size={16} stroke={1.5} />
+                        </ActionIcon>
+                      </Tooltip>
                     </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Create new chat button */}
       <div className="p-4 border-t border-gray-700">
-        <button
+        <Button
+          color="blue"
           onClick={onCreateSession}
           className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded transition cursor-pointer"
         >
-          <IconPlus className="h-5 w-5" stroke={1.5} />
-          <span>New Chat</span>
-        </button>
+          New Chat
+        </Button>
       </div>
     </div>
   );
