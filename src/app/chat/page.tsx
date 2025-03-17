@@ -83,7 +83,6 @@ const ChatPage = () => {
 
         // Update the session with the new message
         updateSessionWithMessage(activeSessionId, newMessage);
-        setSelectedMessage(newMessage);
       } else if (data.type === "stream") {
         setIsStreamingResponse(true);
 
@@ -189,11 +188,7 @@ const ChatPage = () => {
   };
 
   // Send a message from the user
-  const sendUserMessage = (
-    content: string,
-    enableStreaming: boolean = false,
-    imageData?: string
-  ) => {
+  const sendUserMessage = (content: string, imageData?: string) => {
     if ((!content.trim() && !imageData) || !activeSessionId || !connected)
       return;
 
@@ -208,7 +203,7 @@ const ChatPage = () => {
     let messageToSend: any = {
       type: "message",
       content,
-      stream: enableStreaming,
+      stream: true,
     };
 
     if (imageData) {

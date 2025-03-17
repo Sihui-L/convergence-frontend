@@ -22,7 +22,9 @@ const useWebSocket = () => {
     if (socket) {
       socket.close();
     }
-  }, [socket]);
+
+    setLastMessage(null);
+  }, [socket, setLastMessage]);
 
   // Connect to WebSocket
   const connect = useCallback(

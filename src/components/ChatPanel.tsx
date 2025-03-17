@@ -5,11 +5,7 @@ import { InputArea } from "./ChatPanel/InputComponents";
 
 export interface ChatPanelProps {
   session: ChatSession | undefined;
-  onSendMessage: (
-    content: string,
-    enableStreaming: boolean,
-    imageData?: string
-  ) => void;
+  onSendMessage: (content: string, imageData?: string) => void;
   isLoading: boolean;
   isStreamingResponse: boolean;
   onMessageSelect: (message: Message | null) => void;
@@ -29,7 +25,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 }) => {
   // State
   const [message, setMessage] = useState<string>("");
-  const [enableStreaming, setEnableStreaming] = useState<boolean>(true);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isProcessingImage, setIsProcessingImage] = useState<boolean>(false);
@@ -56,10 +51,10 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
 
     try {
       if (imagePreview) {
-        onSendMessage(message, enableStreaming, imagePreview);
+        onSendMessage(message, imagePreview);
         resetImageSelection();
       } else {
-        onSendMessage(message, enableStreaming);
+        onSendMessage(message);
       }
 
       setMessage("");
@@ -136,17 +131,6 @@ const ChatPanel: React.FC<ChatPanelProps> = ({
       {/* Chat header */}
       <div className="flex items-center justify-between px-4 py-2 bg-white border-b border-gray-200">
         <h2 className="text-lg font-semibold text-gray-800">{session.name}</h2>
-        <div className="flex items-center space-x-2">
-          <label className="flex items-center space-x-2 text-sm text-gray-600">
-            <input
-              type="checkbox"
-              checked={enableStreaming}
-              onChange={() => setEnableStreaming(!enableStreaming)}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-            <span>Enable streaming</span>
-          </label>
-        </div>
       </div>
 
       {/* Messages area */}
